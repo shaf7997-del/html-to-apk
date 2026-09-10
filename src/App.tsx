@@ -2,10 +2,11 @@ import { useState, useCallback } from 'react';
 import { 
   Code, Settings, Shield, Download, ChevronLeft, ChevronRight,
   AlertTriangle, CheckCircle, XCircle, Info, Upload, FileCode,
-  Smartphone, Package, Lock, Eye, EyeOff, Sparkles, Zap
+  Smartphone, Package, Lock, Eye, EyeOff, Sparkles, Zap, HelpCircle
 } from 'lucide-react';
 import { analyzeSecurity, SecurityReport } from './utils/securityCheck';
 import { buildApk, AppSettings } from './utils/buildApk';
+import DeployGuide from './components/DeployGuide';
 
 type Step = 'code' | 'settings' | 'security' | 'build';
 
@@ -65,6 +66,7 @@ export default function App() {
   const [buildComplete, setBuildComplete] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [iconPreview, setIconPreview] = useState<string | null>(null);
+  const [showDeployGuide, setShowDeployGuide] = useState(false);
 
   const steps: { key: Step; label: string; icon: React.ReactNode }[] = [
     { key: 'code', label: 'کد HTML', icon: <Code size={20} /> },
@@ -146,6 +148,13 @@ export default function App() {
         <p className="text-gray-400 text-sm md:text-base">
           تبدیل کد HTML به اپلیکیشن اندروید با بررسی امنیتی خودکار
         </p>
+        <button
+          onClick={() => setShowDeployGuide(true)}
+          className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 rounded-xl text-sm text-indigo-300 hover:from-indigo-500/30 hover:to-purple-500/30 transition-all duration-300 hover:scale-105"
+        >
+          <HelpCircle size={16} />
+          چطور روی سایتم قرار دهم؟
+        </button>
       </header>
 
       {/* Progress Steps */}
@@ -786,6 +795,9 @@ export default function App() {
       <footer className="text-center mt-12 text-gray-600 text-xs">
         <p>ساخته شده با ❤️ | تبدیل HTML به اپلیکیشن اندروید</p>
       </footer>
+
+      {/* Deploy Guide Modal */}
+      {showDeployGuide && <DeployGuide onClose={() => setShowDeployGuide(false)} />}
     </div>
   );
 }
