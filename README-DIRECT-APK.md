@@ -218,6 +218,52 @@ CMD ["node", "server/index.js"]
 
 ---
 
+## ❌ آیا با هاست cPanel می‌شود؟
+
+**خیر، متأسفانه با هاست cPanel معمولی (Shared Hosting) نمی‌شود این کار را انجام داد.**
+
+### دلایل:
+- ❌ cPanel فقط PHP و فایل‌های استاتیک پشتیبانی می‌کند
+- ❌ Node.js روی shared hosting اجرا نمی‌شود
+- ❌ نصب Java JDK و Android SDK نیاز به دسترسی root دارد
+- ❌ بیلد APK حداقل ۲-۴ گیگابایت RAM نیاز دارد
+- ❌ Android SDK حدود ۳ گیگابایت فضا نیاز دارد
+
+### ✅ راه‌حل‌های جایگزین:
+
+#### ۱. PWABuilder API (رایگان - بدون سرور!)
+```javascript
+// استفاده مستقیم از API مایکروسافت
+const response = await fetch('https://pwabuilder-cloudapk.azurewebsites.net/generateApk', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    manifest: { name: 'My App', ... },
+    startUrl: '/',
+    iconUrl: 'https://...',
+    packageId: 'com.example.myapp'
+  })
+});
+const apk = await response.blob();
+```
+**مزایا:** رایگان، بدون سرور، توسط مایکروسافت  
+**معایب:** فقط PWA تبدیل می‌کند
+
+#### ۲. VPS ارزان (۱۰۰-۲۰۰ هزار تومان/ماه)
+- **Parspack** یا **لیارا** (ایران)
+- **Hetzner** (آلمان - €4.5/ماه)
+- **DigitalOcean** ($6/ماه)
+
+#### ۳. ترکیب cPanel + VPS (بهترین روش)
+```
+فرانت‌اند: cPanel (موجود) → ray-studio.com
+بک‌اند: VPS (جدید) → api.ray-studio.com
+```
+
+📖 **جزئیات کامل:** فایل `README-CPANEL-ALTERNATIVES.md` را مطالعه کنید.
+
+---
+
 ## 💡 پیشنهاد نهایی برای رای استودیو
 
 ### برای استفاده شخصی/توسعه:
@@ -226,8 +272,11 @@ CMD ["node", "server/index.js"]
 ### برای ارائه سرویس به کاربران سایت:
 → **سرور Cordova + Docker** روی VPS
 
-### برای شروع سریع:
-→ **PWABuilder API** (رایگان، بدون سرور)
+### برای شروع سریع و رایگان:
+→ **PWABuilder API** (رایگان، بدون سرور) ⭐
+
+### اگر فقط cPanel دارید:
+→ **PWABuilder API** (تنها گزینه رایگان بدون نیاز به سرور)
 
 ---
 
