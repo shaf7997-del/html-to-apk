@@ -2,11 +2,10 @@ import { useState, useCallback } from 'react';
 import { 
   Code, Settings, Shield, Download, ChevronLeft, ChevronRight,
   AlertTriangle, CheckCircle, XCircle, Info, Upload, FileCode,
-  Smartphone, Package, Lock, Eye, EyeOff, Sparkles, Zap, HelpCircle
+  Smartphone, Package, Lock, Eye, EyeOff, Sparkles, Zap
 } from 'lucide-react';
 import { analyzeSecurity, SecurityReport } from './utils/securityCheck';
 import { buildApk, AppSettings } from './utils/buildApk';
-import DeployGuide from './components/DeployGuide';
 
 type Step = 'code' | 'settings' | 'security' | 'build';
 
@@ -66,7 +65,6 @@ export default function App() {
   const [buildComplete, setBuildComplete] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [iconPreview, setIconPreview] = useState<string | null>(null);
-  const [showDeployGuide, setShowDeployGuide] = useState(false);
 
   const steps: { key: Step; label: string; icon: React.ReactNode }[] = [
     { key: 'code', label: 'کد HTML', icon: <Code size={18} /> },
@@ -147,13 +145,6 @@ export default function App() {
         <p className="text-gray-400 text-xs sm:text-sm md:text-base px-2">
           تبدیل کد HTML به اپلیکیشن اندروید با بررسی امنیتی خودکار
         </p>
-        <button
-          onClick={() => setShowDeployGuide(true)}
-          className="mt-3 inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 rounded-lg sm:rounded-xl text-xs sm:text-sm text-indigo-300 hover:from-indigo-500/30 hover:to-purple-500/30 transition-all duration-300 active:scale-95"
-        >
-          <HelpCircle size={14} />
-          چطور روی سایتم قرار دهم؟
-        </button>
       </header>
 
       {/* Progress Steps - Mobile optimized */}
@@ -803,9 +794,6 @@ export default function App() {
       <footer className="text-center mt-8 sm:mt-12 text-gray-600 text-[10px] sm:text-xs px-2">
         <p>ساخته شده با ❤️ | تبدیل HTML به اپلیکیشن اندروید</p>
       </footer>
-
-      {/* Deploy Guide Modal */}
-      {showDeployGuide && <DeployGuide onClose={() => setShowDeployGuide(false)} />}
     </div>
   );
 }
