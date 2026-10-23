@@ -16,66 +16,6 @@ export interface AppSettings {
   splashDataUrl: string | null;
 }
 
-export async function buildApk(
-  htmlCode: string,
-  settings: AppSettings,
-  format: 'apk' | 'aab'
-): Promise<void> {
-  const zip = new JSZip();
-
-  // Create Android project structure
-  const manifest = generateManifest(settings);
-  const mainActivity = generateMainActivity(settings);
-  const buildGradle = generateBuildGradle(settings);
-  const settingsGradle = generateSettingsGradle(settings);
-  const stringsXml = generateStringsXml(settings);
-  const stylesXml = generateStylesXml(settings);
-  const colorsXml = generateColorsXml(settings);
-
-  // Add files to zip
-  zip.file('AndroidManifest.xml', manifest);
-  zip.file('app/src/main/java/' + settings.packageName.replace(/\./g, '/') + '/MainActivity.java', mainActivity);
-  zip.file('app/src/main/assets/index.html', htmlCode);
-  zip.file('app/build.gradle', buildGradle);
-  zip.file('settings.gradle', settingsGradle);
-  zip.file('app/src/main/res/values/strings.xml', stringsXml);
-  zip.file('app/src/main/res/values/styles.xml', stylesXml);
-  zip.file('app/src/main/res/values/colors.xml', colorsXml);
-
-  // Add icon if provided
-  if (settings.iconDataUrl) {
-    const iconBlob = dataURLtoBlob(settings.iconDataUrl);
-    zip.file('app/src/main/res/mipmap-xxxhdpi/ic_launcher.png', iconBlob);
-    zip.file('app/src/main/res/mipmap-xxhdpi/ic_launcher.png', iconBlob);
-    zip.file('app/src/main/res/mipmap-xhdpi/ic_launcher.png', iconBlob);
-    zip.file('app/src/main/res/mipmap-hdpi/ic_launcher.png', iconBlob);
-    zip.file('app/src/main/res/mipmap-mdpi/ic_launcher.png', iconBlob);
-  }
-
-  // Add splash screen if provided
-  if (settings.splashDataUrl) {
-    const splashBlob = dataURLtoBlob(settings.splashDataUrl);
-    zip.file('app/src/main/res/drawable/splash_screen.png', splashBlob);
-  }
-
-  // Add WebView client
-  const webViewClient = generateWebViewClient(settings);
-  zip.file('app/src/main/java/' + settings.packageName.replace(/\./g, '/') + '/AppWebViewClient.java', webViewClient);
-
-  // Add build script
-  const buildScript = generateBuildScript(format);
-  zip.file('build_' + format + '.sh', buildScript);
-
-  // Add README
-  const readme = generateReadme(settings, format);
-  zip.file('README.md', readme);
-
-  // Generate and download
-  const content = await zip.generateAsync({ type: 'blob' });
-  const extension = format === 'apk' ? 'apk' : 'aab';
-  saveAs(content, `${settings.appName.replace(/\s+/g, '_')}_project.${extension}.zip`);
-}
-
 function dataURLtoBlob(dataURL: string): Blob {
   const parts = dataURL.split(',');
   const mime = parts[0].match(/:(.*?);/)?.[1] || 'image/png';
@@ -86,6 +26,68 @@ function dataURLtoBlob(dataURL: string): Blob {
     u8arr[i] = bstr.charCodeAt(i);
   }
   return new Blob([u8arr], { type: mime });
+}
+
+export async function buildApkProject(
+  htmlCode: string,
+  settings: AppSettings
+): Promise<void> {
+  const zip = new JSZip();
+
+  const manifest = generateManifest(settings);
+  const mainActivity = generateMainActivity(settings);
+  const buildGradle = generateBuildGradle(settings);
+  const settingsGradle = generateSettingsGradle(settings);
+  const stringsXml = generateStringsXml(settings);
+  const stylesXml = generateStylesXml(settings);
+  const colorsXml = generateColorsXml(settings);
+
+  zip.file('AndroidManifest.xml', manifest);
+  zip.file('app/src/main/java/' + settings.packageName.replace(/\./g, '/') + '/MainActivity.java', mainActivity);
+  zip.file('app/src/main/assets/index.html', htmlCode);
+  zip.file('app/build.gradle', buildGradle);
+  zip.file('settings.gradle', settingsGradle);
+  zip.file('app/src/main/res/values/strings.xml', stringsXml);
+  zip.file('app/src/main/res/values/styles.xml', stylesXml);
+  zip.file('app/src/main/res/values/colors.xml', colorsXml);
+
+  if (settings.iconDataUrl) {
+    const iconBlob = dataURLtoBlob(settings.iconDataUrl);
+    zip.file('app/src/main/res/mipmap-xxxhdpi/ic_launcher.png', iconBlob);
+    zip.file('app/src/main/res/mipmap-xxhdpi/ic_launcher.png', iconBlob);
+    zip.file('app/src/main/res/mipmap-xhdpi/ic_launcher.png', iconBlob);
+    zip.file('app/src/main/res/mipmap-hdpi/ic_launcher.png', iconBlob);
+    zip.file('app/src/main/res/mipmap-mdpi/ic_launcher.png', iconBlob);
+  }
+
+  if (settings.splashDataUrl) {
+    const splashBlob = dataURLtoBlob(settings.splashDataUrl);
+    zip.file('app/src/main/res/drawable/splash_screen.png', splashBlob);
+  }
+
+  const webViewClient = generateWebViewClient(settings);
+  zip.file('app/src/main/java/' + settings.packageName.replace(/\./g, '/') + '/AppWebViewClient.java', webViewClient);
+
+  // Build scripts
+  zip.file('build.bat', generateBuildBat());
+  zip.file('build.sh', generateBuildSh());
+
+  // Gradle wrapper
+  zip.file('gradlew', generateGradlew());
+  zip.file('gradlew.bat', generateGradlewBat());
+  zip.file('gradle/wrapper/gradle-wrapper.properties', generateGradleWrapperProps());
+
+  // Root build.gradle
+  zip.file('build.gradle', generateRootBuildGradle());
+
+  // README
+  zip.file('README.md', generateReadme(settings));
+
+  // Java setup helper
+  zip.file('setup-java.bat', generateJavaSetupBat());
+
+  const content = await zip.generateAsync({ type: 'blob' });
+  saveAs(content, `${settings.appName.replace(/\s+/g, '_')}_project.zip`);
 }
 
 function generateManifest(settings: AppSettings): string {
@@ -112,8 +114,7 @@ function generateManifest(settings: AppSettings): string {
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="${theme}"
-        android:usesCleartextTraffic="true"
-        android:networkSecurityConfig="@xml/network_security_config">
+        android:usesCleartextTraffic="true">
         
         <activity
             android:name=".MainActivity"
@@ -153,13 +154,11 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         
         ${settings.fullscreen ? `
-        // Fullscreen mode
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(
             WindowManager.LayoutParams.FLAG_FULLSCREEN,
             WindowManager.LayoutParams.FLAG_FULLSCREEN
         );` : `
-        // Set status bar color
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             window.setStatusBarColor(Color.parseColor("${settings.statusBarColor}"));
@@ -168,7 +167,6 @@ public class MainActivity extends Activity {
         webView = new WebView(this);
         setContentView(webView);
 
-        // Configure WebView settings
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
@@ -183,11 +181,9 @@ public class MainActivity extends Activity {
         webSettings.setUseWideViewPort(true);
         webSettings.setLoadWithOverviewMode(true);
 
-        // Set WebView client
         webView.setWebViewClient(new AppWebViewClient());
         webView.setWebChromeClient(new WebChromeClient());
 
-        // Load HTML from assets
         webView.loadUrl("file:///android_asset/index.html");
     }
 
@@ -225,7 +221,6 @@ public class AppWebViewClient extends WebViewClient {
     @Override
     public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
         String url = request.getUrl().toString();
-        // Load all URLs within the WebView
         view.loadUrl(url);
         return true;
     }
@@ -328,91 +323,287 @@ function generateColorsXml(settings: AppSettings): string {
 </resources>`;
 }
 
-function generateBuildScript(format: 'apk' | 'aab'): string {
-  if (format === 'apk') {
-    return `#!/bin/bash
-# Build APK Script
-# Requirements: Android SDK, JDK 11+
+function generateBuildBat(): string {
+  return `@echo off
+chcp 65001 >nul
+echo ============================================
+echo   HTML to APK Builder - Build APK
+echo ============================================
+echo.
 
-echo "Building APK..."
-./gradlew assembleRelease
+REM Check Java
+java -version >nul 2>&1
+if %errorlevel% neq 0 (
+    echo [ERROR] Java JDK not found!
+    echo.
+    echo Please run setup-java.bat first
+    echo or install Java JDK 17 from: https://adoptium.net/
+    echo.
+    pause
+    exit /b 1
+)
 
-echo ""
-echo "APK built successfully!"
-echo "Output: app/build/outputs/apk/release/app-release.apk"
-echo ""
-echo "To install on device:"
-echo "  adb install app/build/outputs/apk/release/app-release.apk"
+echo [OK] Java found
+echo.
+
+REM Check Android SDK
+if not defined ANDROID_HOME (
+    if exist "%USERPROFILE%\\android-sdk" (
+        set "ANDROID_HOME=%USERPROFILE%\\android-sdk"
+    ) else (
+        echo [INFO] Downloading Android SDK...
+        echo This may take a few minutes.
+        echo.
+        
+        if not exist "%USERPROFILE%\\android-sdk" mkdir "%USERPROFILE%\\android-sdk"
+        
+        echo Downloading Command Line Tools...
+        powershell -Command "& { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://dl.google.com/android/repository/commandlinetools-win-11076708_latest.zip' -OutFile '%USERPROFILE%\\android-sdk\\cmdline-tools.zip' }"
+        
+        echo Extracting...
+        powershell -Command "& { Expand-Archive -Path '%USERPROFILE%\\android-sdk\\cmdline-tools.zip' -DestinationPath '%USERPROFILE%\\android-sdk\\cmdline-tools-temp' -Force }"
+        
+        if not exist "%USERPROFILE%\\android-sdk\\cmdline-tools\\latest" mkdir "%USERPROFILE%\\android-sdk\\cmdline-tools\\latest"
+        xcopy "%USERPROFILE%\\android-sdk\\cmdline-tools-temp\\cmdline-tools\\*" "%USERPROFILE%\\android-sdk\\cmdline-tools\\latest\\" /E /Y /Q >nul
+        
+        rmdir /S /Q "%USERPROFILE%\\android-sdk\\cmdline-tools-temp" 2>nul
+        del "%USERPROFILE%\\android-sdk\\cmdline-tools.zip" 2>nul
+        
+        set "ANDROID_HOME=%USERPROFILE%\\android-sdk"
+        
+        echo Accepting licenses...
+        echo y | "%ANDROID_HOME%\\cmdline-tools\\latest\\bin\\sdkmanager.bat" --licenses >nul 2>&1
+        
+        echo Installing Android platform...
+        "%ANDROID_HOME%\\cmdline-tools\\latest\\bin\\sdkmanager.bat" "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+        
+        echo.
+        echo [OK] Android SDK installed
+        echo.
+    )
+)
+
+echo [OK] Android SDK found
+echo.
+
+set "PATH=%ANDROID_HOME%\\platform-tools;%ANDROID_HOME%\\cmdline-tools\\latest\\bin;%PATH%"
+
+echo [INFO] Building APK...
+echo.
+
+call gradlew.bat assembleDebug
+
+if %errorlevel% neq 0 (
+    echo.
+    echo [ERROR] Build failed!
+    pause
+    exit /b 1
+)
+
+echo.
+echo ============================================
+echo   APK built successfully!
+echo ============================================
+echo.
+echo APK location:
+echo   app\\build\\outputs\\apk\\debug\\app-debug.apk
+echo.
+echo Install on device:
+echo   adb install app\\build\\outputs\\apk\\debug\\app-debug.apk
+echo.
+pause
 `;
-  } else {
-    return `#!/bin/bash
-# Build AAB (Android App Bundle) Script
-# Requirements: Android SDK, JDK 11+
-
-echo "Building AAB..."
-./gradlew bundleRelease
-
-echo ""
-echo "AAB built successfully!"
-echo "Output: app/build/outputs/bundle/release/app-release.aab"
-echo ""
-echo "Upload this file to Google Play Console."
-`;
-  }
 }
 
-function generateReadme(settings: AppSettings, format: 'apk' | 'aab'): string {
+function generateBuildSh(): string {
+  return `#!/bin/bash
+echo "============================================"
+echo "  HTML to APK Builder - Build APK"
+echo "============================================"
+echo ""
+
+if ! command -v java &> /dev/null; then
+    echo "[ERROR] Java JDK not found!"
+    echo "Install Java JDK 17: sudo apt install openjdk-17-jdk"
+    exit 1
+fi
+
+echo "[OK] Java found"
+
+if [ -z "$ANDROID_HOME" ]; then
+    if [ -d "$HOME/android-sdk" ]; then
+        export ANDROID_HOME="$HOME/android-sdk"
+    else
+        echo "[INFO] Downloading Android SDK..."
+        mkdir -p "$HOME/android-sdk/cmdline-tools"
+        
+        wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O /tmp/cmdline-tools.zip
+        unzip -q /tmp/cmdline-tools.zip -d "$HOME/android-sdk/cmdline-tools"
+        mv "$HOME/android-sdk/cmdline-tools/cmdline-tools" "$HOME/android-sdk/cmdline-tools/latest"
+        rm /tmp/cmdline-tools.zip
+        
+        yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1
+        "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+        
+        echo "[OK] Android SDK installed"
+    fi
+fi
+
+export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
+
+echo "[INFO] Building APK..."
+chmod +x gradlew
+./gradlew assembleDebug
+
+echo ""
+echo "============================================"
+echo "  APK built successfully!"
+echo "============================================"
+echo "Location: app/build/outputs/apk/debug/app-debug.apk"
+`;
+}
+
+function generateGradlew(): string {
+  return `#!/bin/sh
+GRADLE_VERSION="8.4"
+GRADLE_DIR="$HOME/.gradle/wrapper/dists/gradle-\${GRADLE_VERSION}"
+
+if [ ! -d "$GRADLE_DIR" ]; then
+    echo "Downloading Gradle \${GRADLE_VERSION}..."
+    mkdir -p "$GRADLE_DIR"
+    curl -sL "https://services.gradle.org/distributions/gradle-\${GRADLE_VERSION}-bin.zip" -o "/tmp/gradle.zip"
+    unzip -q "/tmp/gradle.zip" -d "$GRADLE_DIR"
+    rm "/tmp/gradle.zip"
+fi
+
+exec "$GRADLE_DIR/gradle-\${GRADLE_VERSION}/bin/gradle" "$@"
+`;
+}
+
+function generateGradlewBat(): string {
+  return `@echo off
+setlocal
+
+set GRADLE_VERSION=8.4
+set GRADLE_DIR=%USERPROFILE%\\.gradle\\wrapper\\dists\\gradle-%GRADLE_VERSION%
+
+if not exist "%GRADLE_DIR%" (
+    echo Downloading Gradle %GRADLE_VERSION%...
+    mkdir "%GRADLE_DIR%" 2>nul
+    powershell -Command "& { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://services.gradle.org/distributions/gradle-%GRADLE_VERSION%-bin.zip' -OutFile '%TEMP%\\gradle.zip' }"
+    powershell -Command "& { Expand-Archive -Path '%TEMP%\\gradle.zip' -DestinationPath '%GRADLE_DIR%' -Force }"
+    del "%TEMP%\\gradle.zip" 2>nul
+)
+
+"%GRADLE_DIR%\\gradle-%GRADLE_VERSION%\\bin\\gradle.bat" %*
+`;
+}
+
+function generateGradleWrapperProps(): string {
+  return `distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+distributionUrl=https\\://services.gradle.org/distributions/gradle-8.4-bin.zip
+networkTimeout=10000
+validateDistributionUrl=true
+zipStoreBase=GRADLE_USER_HOME
+zipStorePath=wrapper/dists
+`;
+}
+
+function generateRootBuildGradle(): string {
+  return `// Top-level build file
+plugins {
+    id 'com.android.application' version '8.2.0' apply false
+}
+`;
+}
+
+function generateReadme(settings: AppSettings): string {
   return `# ${settings.appName}
 
 ## اطلاعات پروژه
-- **نام برنامه:** ${settings.appName}
-- **شناسه پکیج:** ${settings.packageName}
+- **نام:** ${settings.appName}
+- **پکیج:** ${settings.packageName}
 - **نسخه:** ${settings.versionName} (${settings.versionCode})
-- **حداقل SDK:** ${settings.minSdk}
-- **هدف SDK:** ${settings.targetSdk}
+- **Min SDK:** ${settings.minSdk}
+- **Target SDK:** ${settings.targetSdk}
 
-## نحوه بیلد
+## ساخت APK
 
-### پیش‌نیازها
-1. نصب Android Studio
-2. نصب JDK 11 یا بالاتر
-3. تنظیم متغیر محیطی ANDROID_HOME
+### پیش‌نیاز: Java JDK 17
+اگر Java نصب نیست، \`setup-java.bat\` را اجرا کنید.
 
-### مراحل بیلد
-
-\`\`\`bash
-# دادن مجوز اجرا به اسکریپت
-chmod +x build_${format}.sh
-
-# اجرای بیلد
-./build_${format}.sh
+### ساخت خودکار:
+\`\`\`
+build.bat
 \`\`\`
 
-### یا با Gradle مستقیم
+APK در: \`app/build/outputs/apk/debug/app-debug.apk\`
 
-\`\`\`bash
-# برای APK
-./gradlew assembleRelease
-
-# برای AAB
-./gradlew bundleRelease
+### نصب:
 \`\`\`
-
-## خروجی
-${format === 'apk'
-    ? '- فایل APK در مسیر: `app/build/outputs/apk/release/app-release.apk`'
-    : '- فایل AAB در مسیر: `app/build/outputs/bundle/release/app-release.aab`'}
-
-## نصب روی دستگاه
-\`\`\`bash
-adb install app/build/outputs/apk/release/app-release.apk
+adb install app/build/outputs/apk/debug/app-debug.apk
 \`\`\`
+`;
+}
 
-## ویژگی‌ها
-- WebView با پشتیبانی از JavaScript
-- DOM Storage فعال
-- پشتیبانی از کش
-- Fullscreen ${settings.fullscreen ? 'فعال' : 'غیرفعال'}
-- جهت صفحه: ${settings.orientation === 'portrait' ? 'عمودی' : settings.orientation === 'landscape' ? 'افقی' : 'آزاد'}
+function generateJavaSetupBat(): string {
+  return `@echo off
+chcp 65001 >nul
+echo ============================================
+echo   Install Java JDK 17
+echo ============================================
+echo.
+
+set JAVA_DIR=%USERPROFILE%\\.java-jdk17
+
+if exist "%JAVA_DIR%\\bin\\java.exe" (
+    echo Java already installed at: %JAVA_DIR%
+    echo.
+    echo Set environment variable:
+    echo   setx JAVA_HOME "%JAVA_DIR%"
+    echo.
+    pause
+    exit /b 0
+)
+
+echo Downloading Java JDK 17 (Adoptium)...
+echo.
+
+mkdir "%JAVA_DIR%" 2>nul
+
+powershell -Command "& { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://api.adoptium.net/v3/binary/latest/17/ga/windows/x64/jdk/hotspot/normal/eclipse' -OutFile '%TEMP%\\jdk17.zip' }"
+
+echo Extracting...
+powershell -Command "& { Expand-Archive -Path '%TEMP%\\jdk17.zip' -DestinationPath '%TEMP%\\jdk17-temp' -Force }"
+
+for /d %%i in ("%TEMP%\\jdk17-temp\\*") do (
+    xcopy "%%i\\*" "%JAVA_DIR%\\" /E /Y /Q >nul
+)
+
+rmdir /S /Q "%TEMP%\\jdk17-temp" 2>nul
+del "%TEMP%\\jdk17.zip" 2>nul
+
+echo.
+echo ============================================
+echo   Java JDK 17 installed!
+echo ============================================
+echo.
+echo Location: %JAVA_DIR%
+echo.
+echo Set environment variables:
+echo   setx JAVA_HOME "%JAVA_DIR%"
+echo   setx PATH "%%JAVA_HOME%%\\bin;%%PATH%%"
+echo.
+
+set "JAVA_HOME=%JAVA_DIR%"
+set "PATH=%JAVA_DIR%\\bin;%PATH%"
+
+echo Checking installation...
+java -version
+echo.
+echo Now run build.bat to build APK.
+echo.
+pause
 `;
 }

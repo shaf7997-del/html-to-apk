@@ -1,58 +1,58 @@
-# 🚀 HTML to APK/AAB Converter - رای استودیو
+# 🚀 HTML to APK Builder
 
-> تبدیل کد HTML به اپلیکیشن اندروید با بررسی امنیتی خودکار
+> تبدیل کد HTML به اپلیکیشن اندروید - بدون نیاز به Android Studio
 
 ---
 
-## 📁 ساختار پروژه
+## 📦 دو نسخه موجود
 
+### ۱. 🖥️ برنامه دسکتاپ ویندوز (پیشنهادی)
+- نصب آسان روی ویندوز
+- ساخت مستقیم APK
+- بدون نیاز به Android Studio
+- **مسیر:** `electron-app/`
+
+### ۲. 🌐 نسخه وب
+- قابل استفاده در مرورگر
+- تولید پروژه Android Studio
+- نیاز به Android Studio برای ساخت APK
+- **مسیر:** `src/` (فعلی)
+
+---
+
+## 🖥️ برنامه دسکتاپ ویندوز
+
+### ✨ ویژگی‌ها
+- ✅ نصب آسان (فایل Setup)
+- ✅ رابط کاربری ساده
+- ✅ ساخت مستقیم APK
+- ✅ دانلود خودکار ابزارها
+- ✅ بدون نیاز به Android Studio
+
+### 📥 نصب
+```bash
+cd electron-app
+npm install
+npm run dist:win
 ```
-project/
-├── src/                          # کد فرانت‌اند (React)
-│   ├── App.tsx                   # کامپوننت اصلی
-│   ├── main.tsx                  # نقطه ورود
-│   ├── index.css                 # استایل‌ها
-│   └── utils/
-│       ├── securityCheck.ts      # بررسی امنیتی کد
-│       └── buildApk.ts           # تولید پروژه Android
-│
-├── server/                       # سرور بک‌اند (تولید مستقیم APK)
-│   ├── build-server.js           # سرور Express
-│   ├── setup.js                  # بررسی پیش‌نیازها
-│   ├── package.json              # وابستگی‌های سرور
-│   ├── Dockerfile                # ایمیج Docker
-│   ├── docker-compose.yml        # اجرای آسان با Docker
-│   ├── nginx.conf                # تنظیمات Nginx
-│   └── .env.example              # متغیرهای محیطی
-│
-├── dist/                         # خروجی بیلد فرانت‌اند
-├── index.html                    # HTML اصلی
-├── package.json                  # وابستگی‌های فرانت‌اند
-├── README.md                     # این فایل
-├── README-DEPLOY.md              # راهنمای استقرار روی وردپرس
-└── README-DIRECT-APK.md          # راهنمای تولید مستقیم APK
-```
+
+فایل نصب در `release/` قرار می‌گیرد.
+
+### 📖 راهنمای کامل
+فایل `electron-app/README.md` را مطالعه کنید.
 
 ---
 
-## 🎯 دو روش استفاده
+## 🌐 نسخه وب
 
-### روش ۱: فرانت‌اند فقط (بدون سرور)
-- کاربر کد HTML را وارد می‌کند
-- پروژه Android Studio تولید و دانلود می‌شود
-- کاربر باید Android Studio داشته باشد تا APK نهایی بسازد
+### ✨ ویژگی‌ها
+- ✅ ویرایشگر کد HTML
+- ✅ پیش‌نمایش زنده
+- ✅ تنظیمات کامل
+- ✅ تولید پروژه Android Studio
+- ✅ رسپانسیو برای موبایل
 
-### روش ۲: فرانت‌اند + سرور بک‌اند (تولید مستقیم APK) ⭐
-- کاربر کد HTML را وارد می‌کند
-- سرور بک‌اند مستقیماً فایل APK/AAB واقعی تولید می‌کند
-- **نیازی به Android Studio نیست!**
-
----
-
-## 🛠️ نصب و راه‌اندازی
-
-### فرانت‌اند
-
+### 🚀 اجرا
 ```bash
 # نصب وابستگی‌ها
 npm install
@@ -64,180 +64,110 @@ npm run dev
 npm run build
 ```
 
-### سرور بک‌اند (برای تولید مستقیم APK)
-
-```bash
-cd server/
-
-# بررسی پیش‌نیازها
-node setup.js
-
-# نصب وابستگی‌ها
-npm install
-
-# اجرای سرور
-npm start
-```
-
-### سرور بک‌اند با Docker (ساده‌ترین روش)
-
-```bash
-cd server/
-
-# ساخت و اجرای ایمیج
-docker-compose up -d
-
-# مشاهده لاگ‌ها
-docker-compose logs -f
-```
+### 📱 نحوه استفاده
+1. کد HTML را وارد کنید
+2. تنظیمات را پیکربندی کنید
+3. پروژه Android Studio دانلود کنید
+4. `build.bat` را اجرا کنید تا APK ساخته شود
 
 ---
 
-## 📡 API سرور بک‌اند
+## 📁 ساختار پروژه
 
-### بررسی امنیت
-```bash
-curl -X POST http://localhost:3001/api/security-check \
-  -H "Content-Type: application/json" \
-  -d '{"htmlCode": "<html>...</html>"}'
 ```
-
-### ساخت مستقیم APK
-```bash
-curl -X POST http://localhost:3001/api/build-apk \
-  -H "Content-Type: application/json" \
-  -d '{
-    "htmlCode": "<html>...</html>",
-    "settings": {
-      "appName": "My App",
-      "packageName": "com.example.myapp",
-      "versionName": "1.0.0",
-      "versionCode": 1,
-      "minSdk": 21,
-      "targetSdk": 34
-    }
-  }' \
-  --output app.apk
-```
-
-### ساخت مستقیم AAB
-```bash
-curl -X POST http://localhost:3001/api/build-aab \
-  -H "Content-Type: application/json" \
-  -d '{
-    "htmlCode": "<html>...</html>",
-    "settings": {
-      "appName": "My App",
-      "packageName": "com.example.myapp"
-    }
-  }' \
-  --output app.aab
+project/
+├── electron-app/          # برنامه دسکتاپ ویندوز
+│   ├── main.js           # فرآیند اصلی Electron
+│   ├── preload.js        # Preload script
+│   ├── package.json      # وابستگی‌ها
+│   └── README.md         # راهنمای برنامه دسکتاپ
+│
+├── src/                   # نسخه وب (React)
+│   ├── App.tsx           # کامپوننت اصلی
+│   ├── main.tsx          # نقطه ورود
+│   ├── index.css         # استایل‌ها
+│   └── utils/
+│       └── buildApk.ts   # منطق ساخت پروژه
+│
+├── server/                # سرور بک‌اند (اختیاری)
+│   ├── build-server.js   # API ساخت مستقیم APK
+│   └── Dockerfile        # ایمیج Docker
+│
+├── dist/                  # خروجی بیلد وب
+├── package.json          # وابستگی‌های وب
+└── README.md             # این فایل
 ```
 
 ---
 
-## 🔐 امنیت
+## 🎯 کدام نسخه را استفاده کنم؟
 
-### بررسی خودکار کد
-برنامه به صورت خودکار کد HTML را بررسی می‌کند و موارد زیر را شناسایی می‌کند:
-
-- ❌ `eval()` و `Function()` constructor
-- ⚠️ `document.write()` و `innerHTML`
-- ⚠️ `iframe` و دسترسی به دوربین/GPS
-- ⚠️ اسکریپت‌های خارجی مشکوک
-
-### پاکسازی خودکار
-کدهای مخرب به صورت خودکار حذف می‌شوند و نسخه امن تولید می‌شود.
+| نیاز شما | نسخه پیشنهادی |
+|----------|:------------:|
+| استفاده شخصی روی ویندوز | 🖥️ برنامه دسکتاپ |
+| ارائه سرویس در سایت | 🌐 نسخه وب + سرور بک‌اند |
+| استفاده در مرورگر | 🌐 نسخه وب |
+| ساخت APK بدون Android Studio | 🖥️ برنامه دسکتاپ |
 
 ---
 
-## 📱 ویژگی‌ها
+## 🔧 پیش‌نیازها
 
-- ✅ ویرایشگر کد HTML با syntax highlighting
-- ✅ پیش‌نمایش زنده
-- ✅ بررسی امنیتی خودکار
-- ✅ تنظیمات کامل اپلیکیشن
-- ✅ آپلود آیکون سفارشی
-- ✅ تولید پروژه Android Studio
-- ✅ تولید مستقیم APK/AAB (با سرور بک‌اند)
-- ✅ رابط کاربری فارسی و رسپانسیو
-- ✅ پشتیبانی از Docker
+### برنامه دسکتاپ
+- ویندوز ۱۰ یا بالاتر
+- Java JDK 17 (نصب خودکار)
+- اینترنت (برای دانلود Android SDK)
 
----
-
-## 🌐 استقرار روی سایت وردپرس
-
-برای قرار دادن این ابزار روی سایت وردپرسی «رای استودیو»، فایل `README-DEPLOY.md` را مطالعه کنید.
-
-### روش‌های موجود:
-1. آپلود مستقیم فایل‌ها به هاست
-2. استفاده از iframe در صفحه وردپرس ⭐ (پیشنهادی)
-3. ساخت قالب سفارشی وردپرس
-4. استفاده از افزونه Insert HTML Snippet
+### نسخه وب
+- مرورگر مدرن (Chrome, Firefox, Edge)
+- Node.js 18+ (برای توسعه)
 
 ---
 
-## 🚀 تولید مستقیم APK بدون Android Studio
+## 📊 مقایسه روش‌های ساخت APK
 
-برای راه‌اندازی سرور بک‌اند و تولید مستقیم فایل APK/AAB، فایل `README-DIRECT-APK.md` را مطالعه کنید.
-
-### پیش‌نیازهای سرور:
-- Node.js 18+
-- Java JDK 17+
-- Android SDK
-- Cordova CLI
-
-### سریع‌ترین روش (Docker):
-```bash
-cd server/
-docker-compose up -d
-```
+| روش | نیاز به Android Studio | سرعت | پیچیدگی |
+|------|:---------------------:|:-----:|:-------:|
+| برنامه دسکتاپ | ❌ خیر | ۲-۵ دقیقه | آسان |
+| نسخه وب + build.bat | ❌ خیر | ۲-۵ دقیقه | متوسط |
+| نسخه وب + Android Studio | ✅ بله | ۱-۲ دقیقه | پیچیده |
+| سرور بک‌اند | ❌ خیر | ۲-۵ دقیقه | نیاز به سرور |
 
 ---
 
-## 📊 مقایسه روش‌ها
+## 📖 راهنماهای تکمیلی
 
-| ویژگی | فرانت‌اند فقط | با سرور بک‌اند |
-|--------|:------------:|:--------------:|
-| نیاز به Android Studio | ✅ بله | ❌ خیر |
-| سرعت تولید | فوری | ۲-۵ دقیقه |
-| نیاز به سرور | ❌ خیر | ✅ بله |
-| فایل APK واقعی | ❌ خیر | ✅ بله |
-| مناسب برای | توسعه‌دهندگان | کاربران نهایی |
+- **برنامه دسکتاپ:** `electron-app/README.md`
+- **استقرار روی وردپرس:** `README-DEPLOY.md`
+- **تولید مستقیم APK (سرور):** `README-DIRECT-APK.md`
+- **جایگزین‌های cPanel:** `README-CPANEL-ALTERNATIVES.md`
 
 ---
 
 ## 🛠️ تکنولوژی‌ها
 
-### فرانت‌اند
+### برنامه دسکتاپ
+- Electron
+- React
+- Node.js
+- Gradle
+- Android SDK
+
+### نسخه وب
 - React 18
 - TypeScript
 - Tailwind CSS v4
 - Vite
 - JSZip
-- Lucide React
-
-### سرور بک‌اند
-- Node.js 18+
-- Express
-- Cordova
-- Android SDK
-- Docker
 
 ---
 
 ## 📝 مجوز
 
-این پروژه برای استفاده در سایت «رای استودیو | RAY STUDIO» توسعه داده شده است.
-
----
-
-## 📞 پشتیبانی
-
-برای سوالات و پشتیبانی با تیم فنی رای استودیو تماس بگیرید.
+این پروژه تحت مجوز MIT منتشر شده است.
 
 ---
 
 **نسخه:** 1.0.0  
 **آخرین بروزرسانی:** 2026  
-**توسعه‌دهنده:** تیم فنی رای استودیو
+**توسعه‌دهنده:** رای استودیو | RAY STUDIO
